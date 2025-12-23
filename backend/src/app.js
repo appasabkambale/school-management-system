@@ -5,6 +5,8 @@ const prisma = require("./config/prisma");
 const authRoutes = require("./routes/auth.routes");
 const testRoutes = require("./routes/test.routes");
 
+const { errorHandler } = require("./middlewares/error.middleware");
+
 
 const app = express();
 
@@ -22,5 +24,7 @@ app.get("/test-db", async (req, res) => {
   const users = await prisma.user.findMany();
   res.json(users);
 });
+
+app.use(errorHandler);
 
 module.exports = app;
