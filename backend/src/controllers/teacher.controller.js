@@ -47,26 +47,50 @@ exports.createTeacher = async (req, res, next) => {
 
 exports.getAllTeachers = async (req, res, next) => {
   try {
-    const teachers = await prisma.teacher.findMany({
-      include: {
-        subjects: {
-          include: { subject: true },
+    const page = parseInt(req.query.page || "1");
+    const limit = parseInt(req.query.limit || "10");
+    const skip = (page - 1) * limit;
+    const { search } = req.query;
+
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+            { employeeId: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {};
+
+    const [teachers, total] = await Promise.all([
+      prisma.teacher.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          subjects: { include: { subject: true } },
+          classes: { include: { class: true } },
         },
-        classes: {
-          include: { class: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.teacher.count({ where }),
+    ]);
 
     res.status(200).json({
       success: true,
       data: teachers,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 exports.getTeacherById = async (req, res, next) => {
   try {
@@ -258,3 +282,60 @@ exports.assignClasses = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.unassignSubjects = async (req, res, next) => {
+  try {
+    const { id: teacherId } = req.params;
+    const { ids: subjectIds } = req.body;
+
+    if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject IDs array is required",
+      });
+    }
+
+    await prisma.teacherSubject.deleteMany({
+      where: {
+        teacherId,
+        subjectId: { in: subjectIds },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Subjects unassigned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.unassignClasses = async (req, res, next) => {
+  try {
+    const { id: teacherId } = req.params;
+    const { ids: classIds } = req.body;
+
+    if (!Array.isArray(classIds) || classIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Class IDs array is required",
+      });
+    }
+
+    await prisma.teacherClass.deleteMany({
+      where: {
+        teacherId,
+        classId: { in: classIds },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Classes unassigned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

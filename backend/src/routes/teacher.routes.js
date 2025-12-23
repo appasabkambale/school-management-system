@@ -11,6 +11,8 @@ const {
   deleteTeacher,
   assignSubjects,
   assignClasses,
+  unassignSubjects,
+  unassignClasses,
 } = require("../controllers/teacher.controller");
 
 // Admin only
@@ -21,4 +23,7 @@ router.put("/:id", authenticate, authorizeRoles("ADMIN"), updateTeacher);
 router.delete("/:id", authenticate, authorizeRoles("ADMIN"), deleteTeacher);
 router.post("/:id/subjects", authenticate, authorizeRoles("ADMIN"), assignSubjects);
 router.post("/:id/classes", authenticate, authorizeRoles("ADMIN"), assignClasses);
+router.delete("/:id/subjects", authenticate, authorizeRoles("ADMIN"), unassignSubjects);
+router.delete("/:id/classes", authenticate, authorizeRoles("ADMIN"), unassignClasses);
+
 module.exports = router;
