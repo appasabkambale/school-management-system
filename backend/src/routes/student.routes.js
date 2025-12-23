@@ -7,6 +7,8 @@ const {
   createStudent,
   getAllStudents,
   getStudentById,
+  updateStudent,
+  deleteStudent,
 } = require("../controllers/student.controller");
 
 // Admin only
@@ -16,6 +18,8 @@ router.post(
   authorizeRoles("ADMIN"),
   createStudent
 );
+router.put("/:id", authenticate, authorizeRoles("ADMIN"), updateStudent);
+router.delete("/:id", authenticate, authorizeRoles("ADMIN"), deleteStudent);
 
 // Admin + Teacher
 router.get("/", authenticate, authorizeRoles("ADMIN", "TEACHER"), getAllStudents);
