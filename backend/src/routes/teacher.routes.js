@@ -9,6 +9,8 @@ const {
   getTeacherById,
   updateTeacher,
   deleteTeacher,
+  assignSubjects,
+  assignClasses,
 } = require("../controllers/teacher.controller");
 
 // Admin only
@@ -17,5 +19,6 @@ router.get("/", authenticate, authorizeRoles("ADMIN"), getAllTeachers);
 router.get("/:id", authenticate, authorizeRoles("ADMIN"), getTeacherById);
 router.put("/:id", authenticate, authorizeRoles("ADMIN"), updateTeacher);
 router.delete("/:id", authenticate, authorizeRoles("ADMIN"), deleteTeacher);
-
+router.post("/:id/subjects", authenticate, authorizeRoles("ADMIN"), assignSubjects);
+router.post("/:id/classes", authenticate, authorizeRoles("ADMIN"), assignClasses);
 module.exports = router;

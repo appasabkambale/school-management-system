@@ -168,3 +168,93 @@ exports.deleteTeacher = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.assignSubjects = async (req, res, next) => {
+  try {
+    const { id: teacherId } = req.params;
+    const { ids: subjectIds } = req.body;
+
+    if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject IDs array is required",
+      });
+    }
+
+    // validate teacher
+    const teacher = await prisma.teacher.findUnique({ where: { id: teacherId } });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: "Teacher not found" });
+    }
+
+    // validate subjects
+    const subjects = await prisma.subject.findMany({
+      where: { id: { in: subjectIds } },
+      select: { id: true },
+    });
+    if (subjects.length !== subjectIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: "One or more subjects not found",
+      });
+    }
+
+    // create junction rows (skip duplicates)
+    await prisma.teacherSubject.createMany({
+      data: subjectIds.map((sid) => ({ teacherId, subjectId: sid })),
+      skipDuplicates: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Subjects assigned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.assignClasses = async (req, res, next) => {
+  try {
+    const { id: teacherId } = req.params;
+    const { ids: classIds } = req.body;
+
+    if (!Array.isArray(classIds) || classIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Class IDs array is required",
+      });
+    }
+
+    // validate teacher
+    const teacher = await prisma.teacher.findUnique({ where: { id: teacherId } });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: "Teacher not found" });
+    }
+
+    // validate classes
+    const classes = await prisma.class.findMany({
+      where: { id: { in: classIds } },
+      select: { id: true },
+    });
+    if (classes.length !== classIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: "One or more classes not found",
+      });
+    }
+
+    // create junction rows (skip duplicates)
+    await prisma.teacherClass.createMany({
+      data: classIds.map((cid) => ({ teacherId, classId: cid })),
+      skipDuplicates: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Classes assigned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
