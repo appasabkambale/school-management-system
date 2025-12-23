@@ -24,24 +24,70 @@ model User {
 }
 
 model Class {
-  id        String    @id @default(uuid())
-  name      String
-  section   String
-  students  Student[]
-  createdAt DateTime  @default(now())
+  id      String @id @default(uuid())
+  name    String
+  section String
+
+  students Student[]
+  teachers TeacherClass[]
+
+  createdAt DateTime @default(now())
 }
 
 model Student {
-  id         String   @id @default(uuid())
+  id         String @id @default(uuid())
   name       String
-  email      String   @unique
+  email      String @unique
   rollNumber Int
   classId    String
 
-  class      Class    @relation(fields: [classId], references: [id])
+  class Class @relation(fields: [classId], references: [id])
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Teacher {
+  id         String @id @default(uuid())
+  name       String
+  email      String @unique
+  phone      String
+  employeeId String @unique
+
+  subjects TeacherSubject[]
+  classes  TeacherClass[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subject {
+  id   String @id @default(uuid())
+  name String
+  code String @unique
+
+  teachers  TeacherSubject[]
+  createdAt DateTime         @default(now())
+}
+
+model TeacherSubject {
+  teacherId String
+  subjectId String
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@id([teacherId, subjectId])
+}
+
+model TeacherClass {
+  teacherId String
+  classId   String
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  @@id([teacherId, classId])
 }
 
 enum Role {
@@ -50,4 +96,3 @@ enum Role {
   STUDENT
   PARENT
 }
-
