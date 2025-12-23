@@ -4,6 +4,7 @@ const prisma = require("./config/prisma");
 
 const authRoutes = require("./routes/auth.routes");
 const testRoutes = require("./routes/test.routes");
+const classRoutes = require("./routes/class.routes");
 
 const { errorHandler } = require("./middlewares/error.middleware");
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
+app.use("/api/classes", classRoutes);
 
 app.get("/", (req, res) => {
   res.send("School Management API running");
