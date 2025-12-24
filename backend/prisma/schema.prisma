@@ -32,6 +32,7 @@ model Class {
   students    Student[]
   teachers    TeacherClass[]
   attendances Attendance[]
+  exams       Exam[]
 
   createdAt DateTime @default(now())
 }
@@ -50,6 +51,7 @@ model Student {
 
   class       Class        @relation(fields: [classId], references: [id])
   attendances Attendance[]
+  marks       Marks[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -81,6 +83,7 @@ model Subject {
 
   teachers    TeacherSubject[]
   attendances Attendance[]
+  exams       Exam[]
 
   createdAt DateTime @default(now())
 }
@@ -132,6 +135,41 @@ model Attendance {
   @@index([classId, date])
   @@index([studentId, date])
   @@index([teacherId, date])
+}
+
+model Exam {
+  id       String   @id @default(uuid())
+  name     String
+  examDate DateTime
+
+  classId   String
+  subjectId String
+
+  maxMarks  Int
+  passMarks Int
+
+  isPublished Boolean @default(false)
+
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  marks Marks[]
+
+  createdAt DateTime @default(now())
+}
+
+model Marks {
+  id        String @id @default(uuid())
+  examId    String
+  studentId String
+  marks     Int
+
+  exam    Exam    @relation(fields: [examId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([examId, studentId])
 }
 
 enum Role {
