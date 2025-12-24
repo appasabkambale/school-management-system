@@ -21,6 +21,7 @@ model User {
   role     Role
 
   teacher Teacher?
+  student Student?
 }
 
 model Class {
@@ -36,7 +37,12 @@ model Class {
 }
 
 model Student {
-  id         String @id @default(uuid())
+  id String @id @default(uuid())
+
+  // 🔥 TEMPORARY nullable + unique (for migration safety)
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
   name       String
   email      String @unique
   rollNumber Int
@@ -51,21 +57,21 @@ model Student {
 
 model Teacher {
   id     String @id @default(uuid())
-  userId String @unique   // ✅ REQUIRED NOW
+  userId String @unique // ✅ REQUIRED NOW
 
-  user   User   @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
-  name        String
-  email       String
-  phone       String
-  employeeId  String @unique
+  name       String
+  email      String
+  phone      String
+  employeeId String @unique
 
   subjects    TeacherSubject[]
   classes     TeacherClass[]
   attendances Attendance[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Subject {

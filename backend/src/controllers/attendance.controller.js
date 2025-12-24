@@ -110,3 +110,124 @@ exports.markAttendance = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getClassAttendance = async (req, res, next) => {
+  try {
+    const { classId } = req.params;
+    const { subjectId, date } = req.query;
+    const user = req.user;
+
+    if (!subjectId || !date) {
+      return res.status(400).json({
+        success: false,
+        message: "subjectId and date are required",
+      });
+    }
+
+    // 🔥 FIX: Resolve Teacher from User
+    if (user.role === "TEACHER") {
+      const teacher = await prisma.teacher.findUnique({
+        where: { userId: user.id },
+      });
+
+      if (!teacher) {
+        return res.status(403).json({
+          success: false,
+          message: "Teacher profile not linked to this user",
+        });
+      }
+
+      const assigned = await prisma.teacherClass.findUnique({
+        where: {
+          teacherId_classId: {
+            teacherId: teacher.id, // ✅ CORRECT
+            classId,
+          },
+        },
+      });
+
+      if (!assigned) {
+        return res.status(403).json({
+          success: false,
+          message: "Not authorized for this class",
+        });
+      }
+    }
+
+    const attendance = await prisma.attendance.findMany({
+      where: {
+        classId,
+        subjectId,
+        date: new Date(date),
+      },
+      include: {
+        student: {
+          select: { id: true, name: true, rollNumber: true },
+        },
+      },
+      orderBy: {
+        student: { rollNumber: "asc" },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: attendance,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMyAttendance = async (req, res, next) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.id },
+    });
+
+    if (!student) {
+      return res.status(403).json({
+        success: false,
+        message: "Student profile not linked to this user",
+      });
+    }
+
+    const attendance = await prisma.attendance.findMany({
+      where: { studentId: student.id },
+      include: {
+        subject: { select: { name: true } },
+        class: { select: { name: true, section: true } },
+      },
+      orderBy: { date: "desc" },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: attendance,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getStudentAttendance = async (req, res, next) => {
+  try {
+    const { studentId } = req.params;
+
+    const attendance = await prisma.attendance.findMany({
+      where: { studentId },
+      include: {
+        subject: { select: { name: true } },
+        class: { select: { name: true, section: true } },
+      },
+      orderBy: { date: "desc" },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: attendance,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
