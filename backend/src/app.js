@@ -11,6 +11,7 @@ const teacherRoutes = require("./routes/teacher.routes");
 const attendanceRoutes = require("./routes/attendance.routes");
 const examRoutes = require("./routes/exam.routes");
 const marksRoutes = require("./routes/marks.routes");
+const resultRoutes = require("./routes/result.routes");
 
 const { errorHandler } = require("./middlewares/error.middleware");
 
@@ -29,6 +30,7 @@ app.use("/api/teachers", teacherRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/exams", examRoutes);
 app.use("/api/marks", marksRoutes);
+app.use("/api/results", resultRoutes);
 
 app.get("/", (req, res) => {
   res.send("School Management API running");
