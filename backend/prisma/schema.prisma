@@ -29,10 +29,11 @@ model Class {
   name    String
   section String
 
-  students    Student[]
-  teachers    TeacherClass[]
-  attendances Attendance[]
-  exams       Exam[]
+  students      Student[]
+  teachers      TeacherClass[]
+  attendances   Attendance[]
+  exams         Exam[]
+  feeStructures FeeStructure[]
 
   createdAt DateTime @default(now())
 }
@@ -52,6 +53,9 @@ model Student {
   class       Class        @relation(fields: [classId], references: [id])
   attendances Attendance[]
   marks       Marks[]
+
+  feeDues  FeeDue[]
+  payments Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -170,6 +174,68 @@ model Marks {
   createdAt DateTime @default(now())
 
   @@unique([examId, studentId])
+}
+
+enum FeeStatus {
+  PENDING
+  PAID
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+}
+
+model FeeStructure {
+  id           String   @id @default(uuid())
+  title        String
+  amount       Int
+  dueDate      DateTime
+  academicYear String
+  isActive     Boolean  @default(true)
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  feeDues FeeDue[]
+
+  createdAt DateTime @default(now())
+}
+
+model FeeDue {
+  id             String @id @default(uuid())
+  studentId      String
+  feeStructureId String
+
+  amount  Int
+  status  FeeStatus @default(PENDING)
+  dueDate DateTime
+
+  student      Student      @relation(fields: [studentId], references: [id])
+  feeStructure FeeStructure @relation(fields: [feeStructureId], references: [id])
+
+  payments Payment[]
+
+  @@unique([studentId, feeStructureId])
+}
+
+model Payment {
+  id        String @id @default(uuid())
+  studentId String
+  feeDueId  String
+
+  razorpayOrderId   String
+  razorpayPaymentId String?
+  razorpaySignature String?
+
+  amount Int
+  status PaymentStatus @default(CREATED)
+
+  student Student @relation(fields: [studentId], references: [id])
+  feeDue  FeeDue  @relation(fields: [feeDueId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 enum Role {
