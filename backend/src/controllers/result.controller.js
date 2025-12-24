@@ -102,3 +102,71 @@ exports.getClassResults = async (req, res, next) => {
   }
 };
 
+exports.getClassSummary = async (req, res, next) => {
+  try {
+    const { classId } = req.params;
+    const { examId } = req.query;
+
+    if (!examId) {
+      return res.status(400).json({
+        success: false,
+        message: "examId is required",
+      });
+    }
+
+    const marks = await prisma.marks.findMany({
+      where: {
+        examId,
+        exam: {
+          classId,
+          isPublished: true,
+        },
+      },
+      include: {
+        student: { select: { id: true, name: true, rollNumber: true } },
+        exam: true,
+      },
+    });
+
+    if (marks.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          average: 0,
+          topper: null,
+          passPercentage: 0,
+        },
+      });
+    }
+
+    const totalMarks = marks.reduce((sum, m) => sum + m.marks, 0);
+    const average = (totalMarks / marks.length).toFixed(2);
+
+    const topper = marks.reduce((max, curr) =>
+      curr.marks > max.marks ? curr : max
+    );
+
+    const passCount = marks.filter(
+      m => m.marks >= m.exam.passMarks
+    ).length;
+
+    const passPercentage = (
+      (passCount / marks.length) *
+      100
+    ).toFixed(2);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        average,
+        topper: {
+          student: topper.student,
+          marks: topper.marks,
+        },
+        passPercentage,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

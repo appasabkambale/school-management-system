@@ -6,6 +6,7 @@ const { authorizeRoles } = require("../middlewares/role.middleware");
 const {
   getMyResults,
   getClassResults,
+  getClassSummary,
 } = require("../controllers/result.controller");
 
 router.get(
@@ -20,6 +21,13 @@ router.get(
   authenticate,
   authorizeRoles("ADMIN"),
   getClassResults
+);
+
+router.get(
+  "/summary/class/:classId",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  getClassSummary
 );
 
 module.exports = router;
