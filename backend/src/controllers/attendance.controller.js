@@ -231,3 +231,107 @@ exports.getStudentAttendance = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getStudentReport = async (req, res, next) => {
+  try {
+    const { studentId } = req.params;
+    const { from, to } = req.query;
+
+    // Student can view only own report
+    if (req.user.role === "STUDENT" && req.user.id !== studentId) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const where = {
+      studentId,
+      ...(from && to && {
+        date: {
+          gte: new Date(from),
+          lte: new Date(to),
+        },
+      }),
+    };
+
+    const records = await prisma.attendance.findMany({
+      where,
+      include: {
+        subject: { select: { id: true, name: true } },
+      },
+    });
+
+    const total = records.length;
+    const present = records.filter(r => r.status === "PRESENT").length;
+    const percentage = total === 0 ? 0 : ((present / total) * 100).toFixed(2);
+
+    // Subject-wise breakdown
+    const bySubject = {};
+    records.forEach(r => {
+      if (!bySubject[r.subject.name]) {
+        bySubject[r.subject.name] = { total: 0, present: 0 };
+      }
+      bySubject[r.subject.name].total++;
+      if (r.status === "PRESENT") bySubject[r.subject.name].present++;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalClasses: total,
+        present,
+        percentage,
+        subjectWise: bySubject,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getClassReport = async (req, res, next) => {
+  try {
+    const { classId } = req.params;
+    const { from, to, subjectId } = req.query;
+
+    const where = {
+      classId,
+      ...(subjectId && { subjectId }),
+      ...(from && to && {
+        date: {
+          gte: new Date(from),
+          lte: new Date(to),
+        },
+      }),
+    };
+
+    const records = await prisma.attendance.findMany({
+      where,
+      select: {
+        date: true,
+        status: true,
+        studentId: true,
+      },
+    });
+
+    const daily = {};
+    records.forEach(r => {
+      const d = r.date.toISOString().split("T")[0];
+      if (!daily[d]) {
+        daily[d] = { present: 0, absent: 0 };
+      }
+      r.status === "PRESENT" ? daily[d].present++ : daily[d].absent++;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        classId,
+        days: daily,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
