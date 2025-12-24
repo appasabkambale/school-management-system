@@ -11,6 +11,7 @@ const {
   getStudentAttendance,
   getStudentReport,
   getClassReport,
+  updateAttendance,
 } = require("../controllers/attendance.controller");
 
 router.post(
@@ -58,5 +59,11 @@ router.get(
   getClassReport
 );
 
+router.put(
+  "/",
+  authenticate,
+  authorizeRoles("TEACHER"),
+  updateAttendance
+);
 
 module.exports = router;

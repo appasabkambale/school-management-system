@@ -335,3 +335,67 @@ exports.getClassReport = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateAttendance = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const { classId, subjectId, date, records } = req.body;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    if (date !== today) {
+      return res.status(403).json({
+        success: false,
+        message: "Attendance can only be edited on the same day",
+      });
+    }
+
+    // Validate teacher-class assignment
+    const classAssigned = await prisma.teacherClass.findUnique({
+      where: {
+        teacherId_classId: { teacherId, classId },
+      },
+    });
+    if (!classAssigned) {
+      return res.status(403).json({
+        success: false,
+        message: "Not assigned to this class",
+      });
+    }
+
+    // Validate teacher-subject assignment
+    const subjectAssigned = await prisma.teacherSubject.findUnique({
+      where: {
+        teacherId_subjectId: { teacherId, subjectId },
+      },
+    });
+    if (!subjectAssigned) {
+      return res.status(403).json({
+        success: false,
+        message: "Not assigned to this subject",
+      });
+    }
+
+    // Update records one by one (safe)
+    for (const r of records) {
+      await prisma.attendance.updateMany({
+        where: {
+          studentId: r.studentId,
+          classId,
+          subjectId,
+          date: new Date(date),
+        },
+        data: {
+          status: r.status,
+        },
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Attendance updated successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
