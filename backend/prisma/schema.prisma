@@ -28,8 +28,9 @@ model Class {
   name    String
   section String
 
-  students Student[]
-  teachers TeacherClass[]
+  students    Student[]
+  teachers    TeacherClass[]
+  attendances Attendance[]
 
   createdAt DateTime @default(now())
 }
@@ -41,7 +42,8 @@ model Student {
   rollNumber Int
   classId    String
 
-  class Class @relation(fields: [classId], references: [id])
+  class       Class        @relation(fields: [classId], references: [id])
+  attendances Attendance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -54,8 +56,9 @@ model Teacher {
   phone      String
   employeeId String @unique
 
-  subjects TeacherSubject[]
-  classes  TeacherClass[]
+  subjects    TeacherSubject[]
+  classes     TeacherClass[]
+  attendances Attendance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -66,8 +69,10 @@ model Subject {
   name String
   code String @unique
 
-  teachers  TeacherSubject[]
-  createdAt DateTime         @default(now())
+  teachers    TeacherSubject[]
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
 }
 
 model TeacherSubject {
@@ -88,6 +93,35 @@ model TeacherClass {
   class   Class   @relation(fields: [classId], references: [id])
 
   @@id([teacherId, classId])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
+model Attendance {
+  id     String           @id @default(uuid())
+  date   DateTime         @db.Date
+  status AttendanceStatus
+
+  studentId String
+  classId   String
+  subjectId String
+  teacherId String
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, subjectId, date])
+  @@index([classId, date])
+  @@index([studentId, date])
+  @@index([teacherId, date])
 }
 
 enum Role {
