@@ -7,6 +7,8 @@ const {
   getMyFeeDues,
   createPaymentOrder,
   verifyPayment,
+  getMyPayments,
+  getPaymentSummary,
 } = require("../controllers/payment.controller");
 
 // Student only
@@ -29,6 +31,20 @@ router.post(
   authenticate,
   authorizeRoles("STUDENT"),
   verifyPayment
+);
+
+router.get(
+  "/my",
+  authenticate,
+  authorizeRoles("STUDENT"),
+  getMyPayments
+);
+
+router.get(
+  "/report/summary",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  getPaymentSummary
 );
 
 module.exports = router;

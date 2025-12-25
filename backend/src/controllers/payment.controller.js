@@ -192,3 +192,71 @@ exports.verifyPayment = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getMyPayments = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+
+    const payments = await prisma.payment.findMany({
+      where: {
+        studentId,
+        status: "PAID",
+      },
+      include: {
+        feeDue: {
+          include: {
+            feeStructure: {
+              select: {
+                title: true,
+                academicYear: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: payments.map(p => ({
+        paymentId: p.razorpayPaymentId,
+        orderId: p.razorpayOrderId,
+        amount: p.amount,
+        feeTitle: p.feeDue.feeStructure.title,
+        academicYear: p.feeDue.feeStructure.academicYear,
+        paidAt: p.createdAt,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPaymentSummary = async (req, res, next) => {
+  try {
+    const totalAssigned = await prisma.feeDue.aggregate({
+      _sum: { amount: true },
+    });
+
+    const totalCollected = await prisma.payment.aggregate({
+      _sum: { amount: true },
+      where: { status: "PAID" },
+    });
+
+    const pending = (totalAssigned._sum.amount || 0) -
+                    (totalCollected._sum.amount || 0);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalAssigned: totalAssigned._sum.amount || 0,
+        totalCollected: totalCollected._sum.amount || 0,
+        pending,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
