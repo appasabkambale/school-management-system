@@ -6,6 +6,7 @@ const { authorizeRoles } = require("../middlewares/role.middleware");
 const {
   getMyFeeDues,
   createPaymentOrder,
+  verifyPayment,
 } = require("../controllers/payment.controller");
 
 // Student only
@@ -21,6 +22,13 @@ router.post(
   authenticate,
   authorizeRoles("STUDENT"),
   createPaymentOrder
+);
+
+router.post(
+  "/verify",
+  authenticate,
+  authorizeRoles("STUDENT"),
+  verifyPayment
 );
 
 module.exports = router;
