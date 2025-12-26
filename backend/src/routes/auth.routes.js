@@ -1,8 +1,9 @@
+// backend/src/routes/auth.routes.js
 const express = require("express");
 const router = express.Router();
 
 const { register, login, getMe } = require("../controllers/auth.controller");
-const { authenticate } = require("../middlewares/auth.middleware");
+const { authenticate } = require("../middlewares/authMiddleware");
 
 router.post("/register", register);
 router.post("/login", login);

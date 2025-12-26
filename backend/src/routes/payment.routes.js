@@ -1,8 +1,9 @@
+// backend/src/routes/payment.routes.js
 const express = require("express");
 const router = express.Router();
 
-const { authenticate } = require("../middlewares/auth.middleware");
-const { authorizeRoles } = require("../middlewares/role.middleware");
+const { authenticate } = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
 const {
   getMyFeeDues,
   createPaymentOrder,
@@ -11,7 +12,11 @@ const {
   getPaymentSummary,
 } = require("../controllers/payment.controller");
 
-// Student only
+/* =====================================================
+   STUDENT
+===================================================== */
+
+// Student → fee dues
 router.get(
   "/dues",
   authenticate,
@@ -19,6 +24,7 @@ router.get(
   getMyFeeDues
 );
 
+// Create Razorpay order
 router.post(
   "/create-order",
   authenticate,
@@ -26,6 +32,7 @@ router.post(
   createPaymentOrder
 );
 
+// Verify Razorpay payment
 router.post(
   "/verify",
   authenticate,
@@ -33,6 +40,7 @@ router.post(
   verifyPayment
 );
 
+// Student payment history
 router.get(
   "/my",
   authenticate,
@@ -40,10 +48,15 @@ router.get(
   getMyPayments
 );
 
+/* =====================================================
+   ADMIN + TEACHER
+===================================================== */
+
+// Payment summary report
 router.get(
   "/report/summary",
   authenticate,
-  authorizeRoles("ADMIN"),
+  authorizeRoles("ADMIN", "TEACHER"),
   getPaymentSummary
 );
 

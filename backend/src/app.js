@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const prisma = require("./config/prisma");
@@ -14,15 +15,14 @@ const marksRoutes = require("./routes/marks.routes");
 const resultRoutes = require("./routes/result.routes"); 
 const feeRoutes = require("./routes/fee.routes");
 const paymentRoutes = require("./routes/payment.routes");
-
-const { errorHandler } = require("./middlewares/error.middleware");
-
-
+const { errorHandler } = require("./middlewares/errorMiddleware");
+const adminRoutes = require("./routes/admin.routes");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/classes", classRoutes);

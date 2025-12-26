@@ -1,52 +1,41 @@
 import { useEffect, useState } from "react";
 import StatCard from "../../../components/StatCard";
-import { getAdminStats, getPaymentSummary } from "../../../services/adminApi";
+import { getAdminStats } from "../../../services/adminApi";
+import { getPaymentSummary } from "../../../services/adminApi";
 
-const AdminDashboard = () => {
+const Reports = () => {
   const [stats, setStats] = useState(null);
   const [payments, setPayments] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchReports = async () => {
       try {
         const [adminStats, paymentStats] = await Promise.all([
           getAdminStats(),
           getPaymentSummary(),
         ]);
-
         setStats(adminStats);
         setPayments(paymentStats);
-      } catch {
-        setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchReports();
   }, []);
 
   if (loading) {
-    return <p className="text-slate-600">Loading dashboard...</p>;
-  }
-
-  if (error) {
-    return (
-      <p className="rounded bg-red-100 p-4 text-red-700">
-        {error}
-      </p>
-    );
+    return <p className="text-slate-600">Loading reports...</p>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-800">
-        Admin Dashboard
+      <h1 className="text-xl font-semibold text-slate-800">
+        Reports & Analytics
       </h1>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
         <StatCard
           title="Total Students"
           value={stats.totalStudents}
@@ -56,16 +45,20 @@ const AdminDashboard = () => {
           value={stats.totalTeachers}
         />
         <StatCard
-          title="Total Fees Assigned"
+          title="Fees Assigned"
           value={`₹${payments.totalAssigned}`}
         />
         <StatCard
           title="Fees Collected"
           value={`₹${payments.totalCollected}`}
         />
+        <StatCard
+          title="Pending Fees"
+          value={`₹${payments.pending}`}
+        />
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default Reports;

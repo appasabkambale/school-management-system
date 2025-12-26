@@ -1,17 +1,36 @@
+// backend/src/routes/fee.routes.js
 const express = require("express");
 const router = express.Router();
 
-const { authenticate } = require("../middlewares/auth.middleware");
-const { authorizeRoles } = require("../middlewares/role.middleware");
+const { authenticate } = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
 const {
   createFeeStructure,
   getAllFeeStructures,
   assignFeeToClass,
 } = require("../controllers/fee.controller");
 
-// Admin only
-router.post("/", authenticate, authorizeRoles("ADMIN"), createFeeStructure);
-router.get("/", authenticate, authorizeRoles("ADMIN"), getAllFeeStructures);
+/* =====================================================
+   ADMIN
+===================================================== */
+
+// Create fee structure
+router.post(
+  "/",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  createFeeStructure
+);
+
+// Get all fee structures
+router.get(
+  "/",
+  authenticate,
+  authorizeRoles("ADMIN", "TEACHER"),
+  getAllFeeStructures
+);
+
+// Assign fee to class
 router.post(
   "/assign/:classId",
   authenticate,

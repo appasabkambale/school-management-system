@@ -2,7 +2,6 @@ const prisma = require("../config/prisma");
 
 exports.enterMarks = async (req, res, next) => {
   try {
-    const teacherId = req.user.id;
     const { examId, records } = req.body;
 
     if (!examId || !Array.isArray(records) || records.length === 0) {
@@ -11,6 +10,20 @@ exports.enterMarks = async (req, res, next) => {
         message: "examId and records are required",
       });
     }
+
+    // ✅ Resolve Teacher from logged-in User
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.id },
+    });
+
+    if (!teacher) {
+      return res.status(403).json({
+        success: false,
+        message: "Teacher profile not linked to this user",
+      });
+    }
+
+    const teacherId = teacher.id; // ✅ CORRECT
 
     // 1️⃣ Get exam
     const exam = await prisma.exam.findUnique({
@@ -67,7 +80,7 @@ exports.enterMarks = async (req, res, next) => {
     }
 
     // 5️⃣ Validate students belong to class
-    const studentIds = records.map(r => r.studentId);
+    const studentIds = records.map((r) => r.studentId);
 
     const students = await prisma.student.findMany({
       where: {
@@ -95,7 +108,7 @@ exports.enterMarks = async (req, res, next) => {
     }
 
     // 7️⃣ Prepare marks data
-    const marksData = records.map(r => ({
+    const marksData = records.map((r) => ({
       examId,
       studentId: r.studentId,
       marks: r.marks,

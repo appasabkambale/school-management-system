@@ -1,8 +1,9 @@
+// backend/src/routes/subject.routes.js
 const express = require("express");
 const router = express.Router();
 
-const { authenticate } = require("../middlewares/auth.middleware");
-const { authorizeRoles } = require("../middlewares/role.middleware");
+const { authenticate } = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
 const {
   createSubject,
   getAllSubjects,

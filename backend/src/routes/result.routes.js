@@ -1,14 +1,20 @@
+// backend/src/routes/result.routes.js
 const express = require("express");
 const router = express.Router();
 
-const { authenticate } = require("../middlewares/auth.middleware");
-const { authorizeRoles } = require("../middlewares/role.middleware");
+const { authenticate } = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
 const {
   getMyResults,
   getClassResults,
   getClassSummary,
 } = require("../controllers/result.controller");
 
+/* =====================================================
+   STUDENT
+===================================================== */
+
+// Student → own results
 router.get(
   "/me",
   authenticate,
@@ -16,17 +22,23 @@ router.get(
   getMyResults
 );
 
+/* =====================================================
+   ADMIN + TEACHER
+===================================================== */
+
+// Class-wise detailed results
 router.get(
   "/class/:classId",
   authenticate,
-  authorizeRoles("ADMIN"),
+  authorizeRoles("ADMIN", "TEACHER"),
   getClassResults
 );
 
+// Class result summary
 router.get(
   "/summary/class/:classId",
   authenticate,
-  authorizeRoles("ADMIN"),
+  authorizeRoles("ADMIN", "TEACHER"),
   getClassSummary
 );
 

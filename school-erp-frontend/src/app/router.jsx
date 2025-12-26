@@ -1,34 +1,41 @@
 import { createBrowserRouter } from "react-router-dom";
 import Login from "./pages/auth/Login";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import StudentDashboard from "./pages/student/StudentDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 
+import AdminRoutes from "./routes/AdminRoutes";
+import TeacherRoutes from "./routes/TeacherRoutes";
+import StudentRoutes from "./routes/StudentRoutes";
+import { Navigate } from "react-router-dom";
+
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
+
   { path: "/login", element: <Login /> },
 
   {
-    path: "/admin",
+    path: "/admin/*",
     element: (
       <ProtectedRoute role="ADMIN">
-        <AdminDashboard />
+        <AdminRoutes />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/teacher",
+    path: "/teacher/*",
     element: (
       <ProtectedRoute role="TEACHER">
-        <TeacherDashboard />
+        <TeacherRoutes />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/student",
+    path: "/student/*",
     element: (
       <ProtectedRoute role="STUDENT">
-        <StudentDashboard />
+        <StudentRoutes />
       </ProtectedRoute>
     ),
   },
